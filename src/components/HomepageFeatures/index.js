@@ -4,32 +4,32 @@ import styles from './styles.module.css';
 
 const FeatureList = [
   {
-    title: 'Easy to Use',
-    Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
+    title: '前沿研究',
+    Svg: require('@site/static/img/undraw_science.svg').default,
     description: (
       <>
-        Docusaurus was designed from the ground up to be easily installed and
-        used to get your website up and running quickly.
+        Stima Research 致力於推動人工智能和機器學習領域的前沿研究，
+        不斷探索創新技術和應用。
       </>
     ),
   },
   {
-    title: 'Focus on What Matters',
-    Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
+    title: '產業應用',
+    Svg: require('@site/static/img/undraw_business_analytics.svg').default,
     description: (
       <>
-        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-        ahead and move your docs into the <code>docs</code> directory.
+        我們將最新的研究成果轉化為實際應用，為各行各業提供創新解決方案，
+        推動技術與產業的融合。
       </>
     ),
   },
   {
-    title: 'Powered by React',
-    Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
+    title: '知識分享',
+    Svg: require('@site/static/img/undraw_sharing_knowledge.svg').default,
     description: (
       <>
-        Extend or customize your website layout by reusing React. Docusaurus can
-        be extended while reusing the same header and footer.
+        通過我們的博客和研究報告，我們持續分享最新的研究進展和技術洞察，
+        促進學術界和產業界的交流與合作。
       </>
     ),
   },

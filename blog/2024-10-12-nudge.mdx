@@ -1,0 +1,188 @@
+---
+slug: nudge
+title: NUDGE - 非參數化嵌入微調方法
+authors: [ytlee]
+tags: [nudge, embedding, 2409.02343, 2024]
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import { InlineMath, BlockMath } from 'react-katex';
+
+# NUDGE：輕量級非參數化嵌入微調方法
+
+## 使用案例
+
+<Tabs>
+  <TabItem value="case1" label="檢索失敗" default>
+    當真實值的向量無法與輸入查詢匹配進行 k-NN 搜索或其他相似性搜索時。
+  </TabItem>
+  <TabItem value="case2" label="語義差距">
+    查詢與檢索到的（前 k）片段之間存在語義差距，特別是在特定領域詞彙方面。
+  </TabItem>
+  <TabItem value="case3" label="特定數據適應">
+    希望在特定數據集上提高查詢和結果的滿意度。
+  </TabItem>
+</Tabs>
+
+**原因**：預訓練嵌入模型對預期的真實值向量和關係的理解不夠充分。
+
+## Fine-tuning Embedding Models
+
+### Fine-tuning Embedding Models
+
+<div className="card">
+  <h3>Fine-tuning Embedding Models</h3>
+  <ul>
+    <li>適應特定領域的數據和詞語關係</li>
+    <li>需要重新訓練以應對數據增長</li>
+    <li>需要平衡微調數據以避免遺忘重要信息</li>
+  </ul>
+  <p className="warning">
+    重新索引數據嵌入需要大量時間，包括修改 full-parameter。
+  </p>
+</div>
+
+<div className="card">
+  <h3>訓練適配器</h3>
+  <ul>
+    <li>高效訓練線性神經網絡</li>
+    <li>無需訪問預訓練模型參數</li>
+    <li>在嵌入模型頂部添加適配器</li>
+  </ul>
+  <p className="info">
+    需要一些 effort 重新訓練 embedding model 和 deploy 修改後的模型。
+  </p>
+</div>
+
+## NUDGE：非參數化方法
+
+<div className="highlight">
+  直接**修改 embeddings**，而不是改變嵌入模型的參數
+</div>
+
+### NUDGE 的訓練過程
+1. **MaxS-EFT 最佳化：**
+    - NUDGE 首先利用 MaxS-EFT 目標函數，計算**每個資料embedding vector 應該移動的方向**，使其更接近與其相關的訓練query。
+    - NUDGE-M 和 NUDGE-N 使用不同的constraint來限制嵌入向量移動的幅度，但都使用相同的目標函數來確定移動方向。
+    - 這個階段的目標是**最大化訓練集上的查詢和其對應答案之間的相似度**。
+2. **MaxA-EFT 最佳化：**
+    - 在確定移動方向後，NUDGE 使用 MaxA-EFT 目標函數來**尋找最佳的移動步長 (γ)**，以最大化驗證集上的檢索準確度。
+    - NUDGE-M 和 NUDGE-N 使用不同的方法來尋找最佳的 γ 值。NUDGE-M 通过求解线性不等式来找到最优的 γ 值，而 NUDGE-N 则使用网格搜索来寻找最佳的 γ 值。
+    - 這個階段的目標是**確保微調後的嵌入向量在未見的查詢上也能夠達到良好的檢索效能**。
+### 與現有方法比較
+
+| 方法 | 優點 | 缺點 |
+| --- | --- | --- |
+| 微調預訓練模型 | • 可以顯著提高準確度<br/>• 可以學習到更複雜的語義關係 | • 需要大量計算資源和時間<br/>• 容易過度擬合訓練集<br/>• 更新模型時需要重新嵌入所有歷史資料 |
+| 訓練適配器 | • 比微調預訓練模型更有效率<br/>• 不需要訪問預訓練模型的參數 | • 準確度提升有限<br/>• 需要部署額外的適配器模型<br/>• 更新模型時需要重新訓練適配器模型，並可能需要重新嵌入部分歷史資料 |
+| NUDGE | • 比微調預訓練模型和訓練適配器更有效率<br/>• 不需要訪問預訓練模型的參數<br/>• 更新模型時不需要重新嵌入所有歷史資料<br/>• 易於使用，不需要複雜的超參數調整 | • 準確度提升可能不如微調預訓練模型<br/>• 目前只有 NUDGE-M 有閉合解，其他變體需要使用迭代方法或網格搜尋尋找最佳參數 |
+
+NUDGE 方法是一種創新的嵌入微調方法，它結合了 MaxS-EFT 和 MaxA-EFT 兩個優化目標，並引入了約束條件來限制嵌入向量改變的幅度。與現有的微調方法相比，NUDGE 方法在效率、易用性和通用性方面都具有顯著的優勢。
+
+**以下是一些從論文中提取的額外資訊，可以添加到您的筆記中：**
+
+- NUDGE 的非參數化方法避免了对预训练模型参数的修改，因此可以应用于任何预训练的嵌入模型，即使是无法访问模型参数的封闭源代码模型。
+- NUDGE 的非參數化方法使得它非常適合處理流式數據，因為它可以隨著數據的增長動態更新嵌入向量，而無需重新計算所有歷史數據的嵌入向量。
+- NUDGE 的約束條件確保了嵌入向量在微調過程中不會過度偏離其原始語義，從而提高了模型的泛化能力。
+- NUDGE 的高效插入特性使得它非常適合處理流式數據，因為它可以隨著數據的增長動態更新嵌入向量，而無需重新計算所有歷史數據的嵌入向量。
+
+### 優勢
+- 適用於閉源模型
+- 易於維護，支持高效 insertion
+- 無需費力託管 fine-tuned embedding model 
+
+### 核心概念
+1. 將"真實值"嵌入移近查詢
+2. 設置閾值防止過擬合於 training data, 同時避免遺失先前學到的 semantic meanings.
+3. 限制 embedding 移動距離以保持語義一致性
+
+### NUDGE-N 優化問題
+- 使用內部球體和外部球體約束 embeddings 的移動和分佈範圍
+- 通過最大化驗證準確性設置 gamma
+- 將數據嵌入向query embedding 移動
+
+![NUDGE-N 優化問題](https://file.notion.so/f/f/d77d8234-34dc-4d92-8e94-bf2a56e7f3b2/b68f9585-87af-4288-bf08-c15c8caf7883/Screenshot_2024-10-11_at_22.18.16.png?table=block&id=11c04ebc-6cc7-8004-9d3a-eef9896948f1&spaceId=d77d8234-34dc-4d92-8e94-bf2a56e7f3b2&expirationTimestamp=1728756000000&signature=l9DRAYbJmwS3apMaGrZTl_wRQwnPqNytbYWiv1oxK5U&downloadName=Screenshot+2024-10-11+at+22.18.16.png)
+![sphere](https://file.notion.so/f/f/d77d8234-34dc-4d92-8e94-bf2a56e7f3b2/06b1b66a-a9fa-4890-a7e2-d05172514227/Screenshot_2024-10-11_at_22.16.25.png?table=block&id=11c04ebc-6cc7-8010-b67c-d51245bd99b7&spaceId=d77d8234-34dc-4d92-8e94-bf2a56e7f3b2&expirationTimestamp=1728756000000&signature=J60TwQVdtbp2cycPgpwDunQMe3I1fbe4Ww5EnjgPmtc&downloadName=Screenshot+2024-10-11+at+22.16.25.png)
+
+## NUDGE 訓練過程
+
+<Tabs>
+  <TabItem value="maxs" label="MaxS-EFT 最佳化" default>
+    <ul>
+      <li>計算每個資料 embedding vector 的移動方向</li>
+      <li>最大化訓練集上的查詢和答案相似度</li>
+    </ul>
+  </TabItem>
+  <TabItem value="maxa" label="MaxA-EFT 最佳化">
+    <ul>
+      <li>尋找最佳移動步長 (γ)</li>
+      <li>最大化驗證集上的檢索準確度</li>
+    </ul>
+  </TabItem>
+</Tabs>
+
+## MaxS-EFT 和 MaxA-EFT 的公式和解釋
+
+### MaxS-EFT (最大相似度embedding微調問題)
+
+**目標函數:**
+
+<BlockMath math={`MaxS-N(\\gamma) = \\arg\\max_{\\Delta\\in\\mathbb{R}^{n\\times d}} \\sum_{i\\in[n_T]} Q_{T_i} \\cdot (D_{Y_{T_i}} + \\Delta_{Y_{T_i}})`} />
+
+- **∆:** 代表對資料嵌入矩陣 **D** 的修改
+  - D represents the collections of all the embedded input chunks, the chunks are embedded by matrix ED (initial pre-trained ED matrix).
+  - So, we modify the D matrix (modify the embeddings) to get the modified embeddings.
+  - After fine-tuned by NUDGE, we get the D^* (modified D)
+- **n:** 資料記錄的數量
+- **d:** 嵌入向量的維度
+- **nT:** 訓練集中查詢的數量
+- **QT:** 一個 **nT × d** 的矩陣，包含所有訓練查詢的嵌入向量
+- **YT:** 一個包含 **nT** 個元素的集合，其中 **YTi** 是第 i 個訓練查詢的正確答案的索引
+#### 解釋
+MaxS-EFT 的目標函數旨在**最大化訓練集中每個查詢嵌入向量 (QTi) 與其對應正確答案的嵌入向量 (DYTi} + ∆YTi}) 之間的相似度**。換句話說，MaxS-EFT 嘗試通過調整資料嵌入向量 (D) 來提高查詢和正確答案之間的相似度。
+
+**優化方法:**
+
+如果不小心把 NUDGE 簡化，可能會誤解成 embeddings是可以任意移動距離的，但這樣易造成 overfitting, 且會失去原有的 semantic meaning。
+
+NUDGE 使用 constraints optimization 來解決 MaxS-EFT 問題。NUDGE-M 和 NUDGE-N 使用不同的約束條件，但都使用相同的目標函數來確定每個資料嵌入向量應該移動的方向，使其更接近與其相關的訓練查詢嵌入向量。
+
+**NUDGE-N 約束條件:**
+- NUDGE-M: 使用有界幅度的 NUDGE 限制每個embedding 可以被更改的量，並最大化 correct chunk embedding 與 query embedding 的內積相似度。
+- NUDGE-N: 將每個 embedding 做 norm後移動到單位球面上，可以幫助在處理分佈外之vector 做 querying 的泛化能力。
+    - 計算 所有與query embedding相關的 vectors 總和，並將其做 norm 到球面上，限定最大的可移動距離。
+    - 避免在微調 vector時因為outliers造成向量分佈的劇烈波動，確保移動過的向量不會離原始距離太遠，使用 gamma 調整移動的空間距離。
+
+<BlockMath math={`\\Delta \\in \\mathbb{R}^{n\\times d}, \\|\\Delta_i\\|^2 \\leq \\gamma, \\|D_i + \\Delta_i\\| = 1 \\quad \\forall i \\in [n]`} />
+
+<BlockMath math={`\\Delta^N_i = \\begin{cases}\\frac{G_i}{\\|G_i\\|} - D_i, & \\text{if } \\frac{G_i \\cdot D_i}{\\|G_i\\|} \\geq 1 - \\frac{\\\gamma^*}{2} \\\\
+\\sqrt{\\\gamma^*(4-\\\gamma^*)} Z_i - \\frac{\\\gamma^*}{2} D_i, & \\text{otherwise}
+\\end{cases}
+`} />
+
+### MaxA-EFT (最大準確度嵌入微調問題)
+
+**目標函數:**
+
+<BlockMath math={`\\arg\\max_{\\\Delta\\in\\mathbb{R}^{n\\times d}} \\sum_{i\\in[n_V]} I_i(\\\Delta)`} />
+
+**正確答案的定義:**
+
+<BlockMath math={`Q_i \\cdot (D_{Y_{V_i}} + \\Delta_{Y_{V_i}}) > Q_i \\cdot (D_j + \\Delta_j), \\quad \\forall j \\in [n] \\setminus Y_{V_i}`} />
+
+**解釋:**
+
+MaxA-EFT 的目標函數旨在**最大化驗證集上被正確回答的查詢數量**。正確答案的定義要求查詢嵌入向量與其正確答案的嵌入向量之間的相似度高於與其他任何資料嵌入向量之間的相似度。
+
+**優化方法:**
+
+NUDGE 使用**雙層優化**來解決 MaxA-EFT 問題。內層優化使用 MaxS-EFT 的目標函數來確定每個資料嵌入向量應該移動的方向，而外層優化則使用 MaxA-EFT 的目標函數來尋找最佳的移動步長 (γ)，以最大化驗證集上的檢索準確度。
+
+## 結論
+
+NUDGE 方法是一種創新的嵌入微調方法，它結合了 MaxS-EFT 和 MaxA-EFT 兩個優化目標，並引入了約束條件來限制嵌入向量改變的幅度。與現有的微調方法相比，NUDGE 方法在效率、易用性和通用性方面都具有顯著的優勢。
+
+### 參考資料
+
+[YouTube Video](https://www.youtube.com/watch?v=5-VJrj3FEMk)
