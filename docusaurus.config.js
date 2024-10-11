@@ -90,6 +90,10 @@ const config = {
                 href: 'https://api.stima.tech',
               },
               {
+                label: 'Stima API 使用指南',
+                href: 'https://docs.stima.tech',
+              },
+              {
                 label: 'StimaChat 對話系統',
                 href: 'https://chat.stima.tech',
               },
