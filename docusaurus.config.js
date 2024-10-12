@@ -66,7 +66,8 @@ const config = {
           {to: '/blog', label: '最新文章', position: 'left'},
           {to: '/blog/tags/embedding', label: 'Embedding', position: 'left'},
           {to: '/blog/tags/llm', label: 'LLM', position: 'left'},
-          {to: '/blog/tags/coling2025', label: 'COLING 2025', position: 'left'},
+          {to: '/blog/tags/rag', label: 'RAG', position: 'left'},
+          // {to: '/blog/tags/coling2025', label: 'COLING 2025', position: 'left'},
           {
             href: 'https://api.stima.tech',
             label: 'Stima API',
@@ -130,6 +131,12 @@ const config = {
       prism: {
         theme: prismThemes.github,
         darkTheme: prismThemes.dracula,
+      },
+      algolia: {
+        appId: 'AEDI2O37QC',
+        apiKey: 'aa5b89bf0da0f25b310abe0e24328420',
+        indexName: 'stima_blog',
+        contextualSearch: true,
       },
     }),
 
