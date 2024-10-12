@@ -28,7 +28,7 @@ const FeatureList = [
     Svg: require('@site/static/img/undraw_sharing_knowledge.svg').default,
     description: (
       <>
-        通過我們的博客和研究報告，我們持續分享最新的研究進展和技術洞察，
+        透過我們的開發和研究報告，我們持續分享最新的研究進展和技術洞察，
         促進學術界和產業界的交流。
       </>
     ),
