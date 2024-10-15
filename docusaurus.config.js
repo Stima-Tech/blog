@@ -135,7 +135,7 @@ const config = {
       algolia: {
         appId: 'IUBNVKNVAN',
         apiKey: '011526b4448dbbad8bb0f3273af6c079',
-        indexName: 'stima_blog',
+        indexName: 'stima',
         contextualSearch: true,
       },
     }),
