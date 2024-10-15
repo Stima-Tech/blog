@@ -133,8 +133,8 @@ const config = {
         darkTheme: prismThemes.dracula,
       },
       algolia: {
-        appId: 'AEDI2O37QC',
-        apiKey: 'aa5b89bf0da0f25b310abe0e24328420',
+        appId: 'IUBNVKNVAN',
+        apiKey: '011526b4448dbbad8bb0f3273af6c079',
         indexName: 'stima_blog',
         contextualSearch: true,
       },
