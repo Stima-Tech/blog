@@ -136,7 +136,8 @@ const config = {
         appId: 'IUBNVKNVAN',
         apiKey: '011526b4448dbbad8bb0f3273af6c079',
         indexName: 'stima',
-        contextualSearch: true,
+        // contextualSearch: true,
+        // searchParameters: {}, // 添加這行
       },
     }),
 
