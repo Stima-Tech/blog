@@ -67,7 +67,6 @@ const config = {
           {to: '/blog/tags/embedding', label: 'Embedding', position: 'left'},
           {to: '/blog/tags/llm', label: 'LLM', position: 'left'},
           {to: '/blog/tags/rag', label: 'RAG', position: 'left'},
-          // {to: '/blog/tags/coling2025', label: 'COLING 2025', position: 'left'},
           {
             href: 'https://api.stima.tech',
             label: 'Stima API',
