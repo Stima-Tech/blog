@@ -1,0 +1,85 @@
+---
+slug: MLLMOverview
+title: Multimodal Large Language Models Overview
+authors: [cwwu]
+tags: [MLLM, 2306.13549, 2024]
+---
+
+{/* 建議加入簡短摘要 */}
+本文概述多模態大型語言模型(MLLM)的主要架構、訓練策略與數據處理方法。
+{/* truncate 標記應放在摘要之後 */}
+{/* truncate */}
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import { InlineMath, BlockMath } from 'react-katex';
+
+# Multimodal Large Language Models Overview
+
+## MLLM主要架構
+
+![image](https://hackmd-prod-images.s3-ap-northeast-1.amazonaws.com/uploads/upload_51eee92d104bf6afe33bec777dd48c5b.jpg?AWSAccessKeyId=AKIA3XSAAW6AWSKNINWO&Expires=1729753067&Signature=KLUeQ09DPOQyuecCNJykIvJtssI%3D)
+
+### 預訓練的模態編碼器（似：人類的眼睛和耳朵）
+
+<div className="card">
+  <ul>
+    <li>目的：運用已經與其他模態對齊的預訓練編碼器，將原始訊息（如：圖像或音訊）壓縮成更緊湊的表示形式，如：CLIP。</li>
+    <li>通常會考慮使用高分辨率以提供效能，如：直接擴展方法或塊分割方法。</li>
+     <li>直接擴展方法（Direct Scaling）將更高分辨率的圖像輸入到編碼器中，如：CogAgent。</li>
+    <li>塊分割方法（Patch-division）將高分辨率圖像切割成多個塊，並重複使用低分辨率編碼器捕抓局部或全局特徵，如：Monkey。</li>
+  </ul>
+</div>
+
+<div className="card">
+  <h3>預訓練的大型語言模型（似：人類的大腦）</h3>
+  <ul>
+    <li>常見的LLM：Flan-T5-XL、LLaMA、Vicuna和Qwen</li>
+  </ul>
+</div>
+
+<div className="card">
+  <h3>模態介面（Modality interface）</h3>
+  <ul>
+    <li>目的：端到端的方式訓練LLM成本過高，故多採用可學習的連接器或是借助專家模型將圖像轉換為語言，然後將該語言傳送給LLM。</li>
+      <li>可學習的連接器：它將資訊投影到LLM能高效理解的空間中，並根據多模態資訊融合的方式，有兩種接口，分別為：基於token的融合和基於特徵的融合。</li>
+      <li>基於token的融合：來自編碼器的特徵會被轉換成tokens，並與文本tokens一起傳送到LLM中，如：BLIP-2。</li>
+      <li>基於特徵的融合：這類方法插入額外的模塊，實現文本特徵與視覺特徵之間的深度互動和融合。例如，Flamingo。</li>
+        <li>專家模型：將多模態輸入轉換為語言，而無需進行訓練。例如，VideoChat-Text。</li>
+      <li>Hint: 雖然使用專家模型比較直接，但其靈活性可能不如採用可學習接口。將其他模態轉換為文本可能會導致信息丟失。例如，將視頻轉換為文本描述會扭曲時空關係。</li>
+  </ul>
+</div>
+
+## 訓練策略與數據介紹
+
+1. **預訓練策略：**
+    - 目的：對齊不同模態並學習多模態的世界知識。
+    - 方法：模型會自回歸預測圖像的Token，並遵循交叉摘損失衡量。
+    - 例子：保持預訓練的模塊不變，並訓練一個可學習的接口。
+    - 注意：訓練方法與資料質量密切相關。對於較短且噪聲較多的標註數據，可以採用較低的解析度來加快訓練過程，而對於較長且乾淨的數據，則最好使用較高的解析度來減少幻覺現象。
+
+2. **指令微調**
+    - 目的：教模型更好地理解用戶的指令並完成所要求的任務。
+    - 數據適配（Data Adaptation）：主要是從已經有的高質量資料中轉換出所需要的數據，即利用現成的數據集來創建新的指令數據，而不需要從頭收集數據。 
+    - 自指令生成（Self-Instruction）：利用LLM生成新的指令數據，從而擴展數據集。具體做法是設計一些指令，然後讓LLM自動生成更多類似的指令和回應圖像。
+    - 數據混合：將多模態數據與語言數據混合在一起進行訓練。
+
+
+3. **對齊微調**
+    - 強化學習（Reinforcement Learning with Human Feedback ，RLHF）
+        - 監督微調：微調預訓練模型，呈現初步期望的輸出結果。微調的模型稱為策略模型 （policy model）。
+        - 獎勵建模：通過人類的偏好來區分模型的好壞回應，並給予不同的獎勵分數。
+        - 強化學習：採用Proximal Policy Optimization（PPO）算法優化RL策略模型。PPO 是一種優化策略模型的技術，它的目標是讓模型的行為逐步改進，但同時避免模型與最初的策略模型偏離過遠。
+    - 直接偏好優化（Direct Preference Optimization，DPO）：它通過人類設定好的偏好標籤進行學習，使用的是簡單的二元分類法，此外，DPO 不需要學習一個顯式的獎勵模型，因此簡化整個流程。僅有兩個過程：人類偏好數據的收集和偏好學習。
+
+**以下是一些從論文中提取的額外資訊，可以添加到您的筆記中：**
+
+- Shikra支持區域級的輸入，用戶可以選擇圖像中的特定區域，而不需要選取整個圖片，與助手更靈活地互動。輸出方面，Shikra 可以生成基於圖像的反應並提供框註解，這意味著模型的反應不僅僅是文字描述，還可以包含對圖像的具體標註。
+- Ferret提高了輸入的靈活性，支持多種提示形式，包括點、框和草圖，用戶可以使用不同的方式來標識他們感興趣的內容，無論是通過精確的點擊還是更隨意的草圖，從而滿足不同的需求和情境。
+- Osprey使用預訓練的分割模型來支持點輸入，這意味著用戶可以通過簡單的點擊來選擇圖像中的單一實體或其部分。
+- VisCPM通過設計多階段訓練方案將模型能力轉移到多語言設置。具體而言，該方案將英語作為核心語言，利用豐富的訓練語料。通過利用預訓練的雙語大型語言模型，在指導微調期間添加一些翻譯樣本，將多模態能力轉移到中文。
+
+
+
+### Reference
+[Paper](https://arxiv.org/pdf/2306.13549)
