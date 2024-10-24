@@ -16,7 +16,8 @@ import { InlineMath, BlockMath } from 'react-katex';
 
 ## MLLM主要架構
 
-![image](https://hackmd-prod-images.s3-ap-northeast-1.amazonaws.com/uploads/upload_51eee92d104bf6afe33bec777dd48c5b.jpg?AWSAccessKeyId=AKIA3XSAAW6AWSKNINWO&Expires=1729753067&Signature=KLUeQ09DPOQyuecCNJykIvJtssI%3D)
+![image](https://hackmd-prod-images.s3-ap-northeast-1.amazonaws.com/uploads/upload_51eee92d104bf6afe33bec777dd48c5b.jpg?AWSAccessKeyId=AKIA3XSAAW6AWSKNINWO&Expires=1729783894&Signature=x7q1Pz%2Bf4jSHh59C%2B1BYzXCH0II%3D)
+
 
 ### 預訓練的模態編碼器（似：人類的眼睛和耳朵）
 
@@ -29,15 +30,16 @@ import { InlineMath, BlockMath } from 'react-katex';
   </ul>
 </div>
 
+### 預訓練的大型語言模型（似：人類的大腦）
+
 <div className="card">
-  <h3>預訓練的大型語言模型（似：人類的大腦）</h3>
   <ul>
     <li>常見的LLM：Flan-T5-XL、LLaMA、Vicuna和Qwen</li>
   </ul>
 </div>
 
+### 模態介面（Modality interface）
 <div className="card">
-  <h3>模態介面（Modality interface）</h3>
   <ul>
     <li>目的：端到端的方式訓練LLM成本過高，故多採用可學習的連接器或是借助專家模型將圖像轉換為語言，然後將該語言傳送給LLM。</li>
       <li>可學習的連接器：它將資訊投影到LLM能高效理解的空間中，並根據多模態資訊融合的方式，有兩種接口，分別為：基於token的融合和基於特徵的融合。</li>
@@ -79,5 +81,5 @@ import { InlineMath, BlockMath } from 'react-katex';
 
 
 
-### Reference
+## Reference
 [Paper](https://arxiv.org/pdf/2306.13549)
