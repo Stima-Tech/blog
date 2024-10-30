@@ -6,9 +6,9 @@ tags: [stima, research, hello]
 ---
 
 <!-- Hi, I'm Yu-Ting Lee (Quert), the AI researcher and AI engineer of Stima Research. -->
-Hi, 我是 **[Yu-Ting Lee](https://github.com/thequert)**，目前在 **[Stima Research](https://blog.stima.tech)** 以及 **[Stima Tech](https://api.stima.tech)** 擔任 AI Researcher 和 AI Engineer。
+<!-- Hi, 我是 **[Yu-Ting Lee](https://github.com/thequert)**，目前在 **[Stima Research](https://blog.stima.tech)** 以及 **[Stima Tech](https://api.stima.tech)** 擔任 AI Researcher 和 AI Engineer。 -->
 
-\
+<!-- \ -->
 **[Stima Research](https://blog.stima.tech)** 是一個 **[Stima Tech](https://api.stima.tech)** 所屬的 NLP 研究團隊，致力於探索 AI 的前沿技術。
 <!-- [Docusaurus blogging features](https://docusaurus.io/docs/blog) are powered by the [blog plugin](https://docusaurus.io/docs/api/plugins/@docusaurus/plugin-content-blog). -->
 
