@@ -66,7 +66,7 @@ const config = {
         },
         items: [
           {to: '/blog/welcome', label: '歡迎', position: 'left'},
-          {to: '/blog', label: '最新文章', position: 'left'},
+          {to: '/blog', label: '所有文章', position: 'left'},
           {to: '/blog/tags/embedding', label: 'Embedding', position: 'left'},
           {to: '/blog/tags/llm', label: 'LLM', position: 'left'},
           {to: '/blog/tags/rag', label: 'RAG', position: 'left'},
