@@ -1,0 +1,132 @@
+---
+slug: rulerag
+title: "RuleRAG: Rule-guided Retrieval-Augmented Generation with Language Models for Question Answering"
+authors: [ytlee]
+tags: [paper, rulerag, rag, 2410.22353, 2024]
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import { InlineMath, BlockMath } from 'react-katex';
+
+# RuleRAG: Rule-guided Retrieval-Augmented Generation with Language Models for Question Answering 
+
+這篇論文探討了知識密集型問答（QA）任務中，如何利用規則來增強現有檢索增強生成（RAG）框架的效能。
+
+<!-- truncate -->
+
+## Rule + RAG
+- Hu et al. (2024)
+
+## 目前RAG存在的問題與solution
+- 現有的**retriever只做語義匹配，缺乏推理能力**，僅是透過similarity computation 得到與query相似的文本塊 -> shallow semantic level
+    - 例如如果問 "川普的國籍",  則可能先以關鍵字搜索找到包含『川普』、『國籍』的參考資料，所幸這個問題的答案已經在LLM的知識庫中，所以不會因為retrieve到的文本不包含這題答案而回答不出來。
+    - 但這時候，如果讓retriever可以先進一步做推理，將此句變成『川普出生地在哪裡』，就會比較有效可以找到『川普的國籍資訊』，可以先推斷出川普是美國總統，進一步推導他的出生地，得到美國國籍。
+- 許多事實性查詢的答案隱藏於語義上不相似但邏輯上相關的事件中
+- 生成階段易受到 noise 影響
+    - 原因: LLM 不是透過將搜索項目與query進行推理生成回覆的模式做訓練的，所以很難根據搜索到的項目，進一步將其與query的真實問題進一步做推理回應。
+    - 原因: 如果檢索到的內容有部分包含與真實回答不相干，僅是因為包含關鍵字及相似詞，此時會硬根據該不相關資訊生成不符所需的答案。
+    - 即使檢索結果裡有正確答案，但如果包含任何不相關資訊，就很難保證response的可靠性，所以希望LLM和retriever可以分別在檢索和生成階段都針對問題做推理和過濾不相關的檢索結果。
+
+## Rule 的重要性
+- 一般學習，包含人類都會從學過的東西整理成一套思路，出現新問題時就會先歸類問題，再按照自己的經驗follow特定的rule來解決問題。
+- 解決knowledge-intensive task時，會先根據問題抽出關鍵字，根據關鍵字以及關鍵字之間的關係，尋找需要查找的領域經驗。
+- 在ICL, 我們可以在prompt裡面加上一些已經寫好了rule讓LLM做分類和follow; 在FT階段，可以透過拆解成rule-based 的query以及其output組成training data。
+- rule的目的，是要透過rule建立邏輯思考，以彌補部分prior knowledge的缺失。
+
+## 建立 Rule
+- AMIE3: 規則挖掘演算法，對靜態Knowledge Graph (static knowledge graph)挖掘rule。
+- TLogic: 對時間性Knowledge Graph挖掘rule。
+
+## Static KG & Temporal KG
+### Static KG
+- entity之間的關係不會受到時間改變: e.g. 一個人出生的地方 的關係是不會變的
+- 不同entity之間可以有不同關係，當被AMIE3算法挖掘出來，可以形成：
+
+<BlockMath>
+  {"[\\text{Entity}_1, r_1, \\text{Entity}_2] \\Rightarrow [\\text{Entity}_1, r_2, \\text{Entity}_2]"}
+</BlockMath>
+
+- AMIE3可以挖掘到高confidence的rule。
+
+### Temporal KG
+- entity之間的互動關係可以在不同時間下有不同的連動: e.g. COVID-19的確診數和COVID-19的死亡人數和爆發的地區 都會因爲時間變化而有所變動。
+- *[entity_1, r1, entity_2] leads to [entity_1, r2, entity_2]*
+- 挖掘出兩個entity隨時間變化的關係變化，可以進一步以r1預測r2的變化，可以透過規則挖掘方法將規則變成規則庫。
+- 再者，可以透過規則來預測entity之間的後續變化。例如當query涉及到時間資訊，則可以透過rule來檢索entity, 透過rule支持更詳盡的關係。
+- 例如，對某個國家出生的人，則可以推測他的國籍也來自於該國家。
+- 時序關係可表示為：
+
+## Rule
+- knowledge stored in Knowledge Graph, so we have to adopt AMIE3 and TLogic algorithms to retrieve the relationship between entity, and buid rules between relationship.
+- [Entity1, r1, Entity2] leads to [Entity1, r2, Entity2]
+
+## RuleRAG-ICL
+- 選擇 High Confidence Rules for Retriever and Generator
+規則是base on 真實世界的觀察 (挖掘 using AMIE3 and TLogic)
+    - 每個rule, <InlineMath>{"r \\in \\mathcal{R}_q"}</InlineMath>, 都是unique的搜索邏輯，彼此之間不影響，分別計算每個候選文檔 <InlineMath>{"D_i"}</InlineMath> 與 query-rule pair (q,r) 的相關性分數 s(d_i,q·r), 
+        1. 拿到Query後，可以從關鍵字得到entity。
+        2. 再從Rule庫中，抽取可能的rule
+        3. 將rule連同query送進去LLM, 透過ICL、Rule引導生成內容
+        4. 計算每個query q, rule r, 以及檢索到的文檔 d_i, 得到 s(d_i,q·r)。
+        5. 依照相關性分數，選擇排名前k個文檔，<InlineMath>{"D_{q,r}"}</InlineMath>，將所有來自<InlineMath>{"\\mathcal{R}_q"}</InlineMath>的<InlineMath>{"D_{q,r}"}</InlineMath>結合，形成最終的檢索結果 <InlineMath>{"D_q"}</InlineMath>。
+        6. 檢索結果 <InlineMath>{"D_q"}</InlineMath>在<InlineMath>{"\\mathcal{R}_q"}</InlineMath>的引導，得到答案 α。
+    - 『川普的國籍』-> 『entity、出生於、entity』-> 『川普出生於哪裡』-> 抽取關鍵字 -> BM25 searching。 
+    - Prompt Engineering: 以prompt將Query 改寫成以rule+entities類似抽取關鍵字的方式，後續使用BM25找到matched的文檔。
+### 檢索階段的Rule
+- Rule <InlineMath>{"r \\in \\mathcal{R}_q"}</InlineMath>，將每對 (q, r) 進行獨立檢索。對於所有文檔，會有：
+
+<BlockMath>
+  {"s(d_i, q \\circ r) = E_d(d_i) \\cdot E_q(q \\circ r)"}
+</BlockMath>
+
+其中 <InlineMath>{"E_d"}</InlineMath> 是文檔 encoder，<InlineMath>{"E_q"}</InlineMath> 是 query encoder。
+
+- 檢索結果集合：
+
+<BlockMath>
+  {"D_q = \\bigcup_{r \\in \\mathcal{R}_q} D_q^r, \\quad (\\mathcal{R}_q \\subseteq \\mathcal{R})"}
+</BlockMath>
+
+<BlockMath>
+  {"D_q^r = \\text{arg top-k}_{d_i \\in \\mathcal{D}} s(d_i, q \\circ r), \\quad (r \\in \\mathcal{R}_q)"}
+</BlockMath>
+
+### 生成階段的Rule
+- another approach: Wei et al., 2024
+- LLM在訓練階段比較少被告知如何處理事實之間的**複雜推理**關係。
+- 透過將**規則**連同**檢索到的文檔**一同餵給Generator，可以引導LLM如何透過檢索到的內容進行推理，進一步生成更精確的答案。
+- 可能可以結合CoT (Chain-of-Thought)，使Generator更能按步驟推理生成較精確的答案。
+- <InlineMath>{"P(q|q)"}</InlineMath> 是給定q，生成a的機率，如下我們不讓LLM從示例中隱式學習推理模式，而是直接提供信心度高的rule(instruction)給Generator。
+- <InlineMath>{"P(a|q)=P(a|q,\\mathcal{R},\\mathcal{D}) \\approx P_{\\text{LLM}}(a|\\text{INSTRUCTION}(q,\\mathcal{R}_q,\\mathcal{D}_q))"}</InlineMath>
+
+## RuleRAG-FT
+- **檢索器類型**：使用稀疏檢索器（如BM25）和密集檢索器（如DPR和SimCSE）
+- **訓練過程**：採用對比訓練方式，使用正例和負例進行微調
+- **優化效果**：通過微調提升檢索器的召回準確度
+### 檢索階段的Rule
+- 透過對比學習fine-tune existed encoder。
+- Loss Function：
+
+<BlockMath>
+  {"\\mathcal{L}_q^r = -\\log \\frac{\\exp(s(d_i^+, q \\circ r))}{\\exp(s(d_i^+, q \\circ r)) + \\sum_{d_j^- \\in \\mathcal{B}/\\mathcal{D}_o} \\exp(s(d_j^-, q \\circ r))}"}
+</BlockMath>
+
+<BlockMath>
+  {"\\mathcal{L} = \\sum_{((q, r), \\mathcal{D}_o) \\in \\mathcal{F}_{\\mathcal{R}}} \\mathcal{L}_q^r"}
+</BlockMath>
+
+其中：
+- <InlineMath>{"s(d_i^+, q \\circ r)"}</InlineMath> 是基於正樣本 i 的得分
+- <InlineMath>{"\\mathcal{D}_o"}</InlineMath> 是 Oracle 文檔集
+- <InlineMath>{"\\mathcal{B}"}</InlineMath> 是當前 training batch
+- <InlineMath>{"\\mathcal{B}/\\mathcal{D}_o"}</InlineMath> 是當前 batch 中不屬於 Oracle 文檔的部分
+
+### 生成階段的Rule
+- 透過 supervised instructions fine-tune generator (e.g. Gemma, Llama)
+- Dataset包括查詢（queries）和規則（rules），其中每對（q, r）代表一個查詢和一個相應的邏輯規則。此外，為每個查詢（q）提供的預期目標是其相應的 oracle 文檔（oracle documents）。
+- Instruction Design: Using few-shot learning (2048 shots), given the retrieved document from retriever ground truth when finetuning retriever, and the mined rules using AMIE3 or TLogic。
+
+{/* ### Reference
+[GitHub](https://github.com/chenzhongwu20/RuleRAG_ICL_FT)
+[Paper](https://arxiv.org/abs/2410.22353) */}
