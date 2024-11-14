@@ -101,6 +101,10 @@ const config = {
                 href: 'https://chat.stima.tech',
               },
               {
+                label: 'Stima Playground',
+                href: 'https://playground.stima.tech',
+              },
+              {
                 label: 'Stima Tech 伺服器狀態',
                 href: 'https://stats.stima.tech/',
               },
