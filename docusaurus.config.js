@@ -105,7 +105,7 @@ const config = {
                 href: 'https://playground.stima.tech',
               },
               {
-                label: 'Stima Tech 伺服器狀態',
+                label: 'Stima 伺服器狀態',
                 href: 'https://status.stima.tech/',
               },
             ],
@@ -132,7 +132,7 @@ const config = {
             ],
           },
         ],
-        copyright: `© 2025 Stima Tech All Rights Reserved.`,
+        copyright: `Copyright © 2024 - 2025 Stima AI, Inc.`,
       },
       prism: {
         theme: prismThemes.github,
