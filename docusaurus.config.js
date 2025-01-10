@@ -101,7 +101,7 @@ const config = {
                 href: 'https://chat.stima.tech',
               },
               {
-                label: 'Stima Playground',
+                label: 'Playground',
                 href: 'https://playground.stima.tech',
               },
               {
