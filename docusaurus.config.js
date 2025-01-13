@@ -138,11 +138,6 @@ const config = {
         theme: prismThemes.github,
         darkTheme: prismThemes.dracula,
       },
-      algolia: {
-        appId: 'IUBNVKNVAN',
-        apiKey: '011526b4448dbbad8bb0f3273af6c079',
-        indexName: 'stima',
-      },
     }),
 
   stylesheets: [
@@ -152,6 +147,21 @@ const config = {
       integrity: 'sha384-odtC+0UGzzFL/6PNoE8rX/SPcQDXBJ+uRepguP4QkPCm2LBxH3FA3y+fKSiJ+AmM',
       crossorigin: 'anonymous',
     },
+  ],
+
+  themes: [
+    [
+      require.resolve("@easyops-cn/docusaurus-search-local"),
+      {
+        hashed: true,
+        language: ["zh", "en"],
+        highlightSearchTermsOnTargetPage: true,
+        explicitSearchResultPath: true,
+        indexBlog: true,
+        indexDocs: true,
+        indexPages: true,
+      },
+    ],
   ],
 };
 
